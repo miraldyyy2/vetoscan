@@ -590,7 +590,7 @@ def main():
     args = parser.parse_args()
     if args.port < 1 or args.port > 65535:
         parser.error("--port must be between 1 and 65535")
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    server = ThreadingHTTPServer(('0.0.0.0', args.port), Handler)
     print("VetoScan local MVP: http://127.0.0.1:{0}".format(args.port))
     print("Payments are disabled; this server only listens on localhost.")
     try:
