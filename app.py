@@ -6,6 +6,7 @@ import base64
 import binascii
 import datetime
 import html
+import osт
 import http.client
 import ipaddress
 import json
@@ -586,20 +587,23 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description="Run the local VetoScan MVP API")
-    parser.add_argument("--port", type=int, default=8080)
+    
+    default_port = int(os.environ.get("PORT", 8080))
+    parser.add_argument("--port", type=int, default=default_port)
     args = parser.parse_args()
+    
     if args.port < 1 or args.port > 65535:
         parser.error("--port must be between 1 and 65535")
+        
     server = ThreadingHTTPServer(('0.0.0.0', args.port), Handler)
-    print("VetoScan local MVP: http://127.0.0.1:{0}".format(args.port))
-    print("Payments are disabled; this server only listens on localhost.")
+    print("VetoScan local MVP: http://0.0.0.0:{0}".format(args.port))
+    
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
         server.server_close()
-
 
 if __name__ == "__main__":
     main()
