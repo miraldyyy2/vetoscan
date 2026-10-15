@@ -1,0 +1,28 @@
+{
+  "name": "VetoScan",
+  "version": "0.1.0",
+  "description": "Explainable heuristic screening for known prompt-injection patterns in text and public HTTPS page content, with redacted output and source offsets.",
+  "status": "local-development-only",
+  "endpoint": "http://127.0.0.1:8080/v1/scan",
+  "openapi": "http://127.0.0.1:8080/openapi.json",
+  "llms": "http://127.0.0.1:8080/llms.txt",
+  "agent_tool_definition": "http://127.0.0.1:8080/agent-tool.json",
+  "operations": [{
+    "name": "scanUntrustedContent",
+    "method": "POST",
+    "path": "/v1/scan",
+    "input": "exactly one of {text: string} or {url: public HTTPS URL}",
+    "output": "JSON verdict, review-priority score, total finding count, up to 50 evidence details and offsets, text redacted for every finding, truncation indicator, limitations"
+  }],
+  "payment": {
+    "status": "disabled",
+    "price": null,
+    "reason": "No payment-provider account, stablecoin access approval, facilitator credentials, deposit address, listing, or deployment has been configured or approved."
+  },
+  "limitations": [
+    "Rule-based detections are incomplete and can miss novel or context-dependent attacks.",
+    "Explicit email-send requests in untrusted content may be flagged for review even when legitimate.",
+    "A no_known_pattern verdict is not a safety certification.",
+    "The local server listens only on 127.0.0.1 and must not be exposed publicly."
+  ]
+}

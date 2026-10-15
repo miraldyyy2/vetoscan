@@ -1,0 +1,85 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "VetoScan API",
+    "version": "0.1.0",
+    "description": "Local development MVP for deterministic prompt-injection screening of supplied text or publicly reachable HTTPS pages. Heuristic results are not a security guarantee."
+  },
+  "servers": [{"url": "http://127.0.0.1:8080", "description": "Local-only development server; not public or payment-enabled"}],
+  "paths": {
+    "/service.json": {
+      "get": {
+        "operationId": "getServiceCard",
+        "summary": "Read machine-readable service metadata",
+        "responses": {"200": {"description": "Service discovery metadata"}}
+      }
+    },
+    "/agent-tool.json": {
+      "get": {
+        "operationId": "getAgentToolDefinition",
+        "summary": "Read the agent function-tool schema",
+        "responses": {"200": {"description": "Function-tool definition for agent runtimes"}}
+      }
+    },
+    "/llms.txt": {
+      "get": {
+        "operationId": "getAgentInstructions",
+        "summary": "Read plain-text agent integration and safety notes",
+        "responses": {"200": {"description": "Machine-readable integration notes"}}
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Check local service status",
+        "responses": {"200": {"description": "Service is available", "content": {"application/json": {"schema": {"type": "object", "properties": {"ok": {"type": "boolean"}, "mode": {"type": "string"}, "payments": {"type": "string"}}}}}}}
+      }
+    },
+    "/v1/scan": {
+      "post": {
+        "operationId": "scanUntrustedContent",
+        "summary": "Scan text or a public HTTPS page for known prompt-injection patterns",
+        "description": "Provide exactly one of text or url. URL fetches are constrained to HTTPS port 443 and publicly routed addresses. A no_known_pattern verdict is not a guarantee that content is safe.",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"oneOf": [{"type": "object", "required": ["text"], "additionalProperties": false, "properties": {"text": {"type": "string", "maxLength": 120000}}}, {"type": "object", "required": ["url"], "additionalProperties": false, "properties": {"url": {"type": "string", "format": "uri", "maxLength": 2048}}}]}}}},
+        "responses": {
+          "200": {"description": "Scan result", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ScanResult"}}}},
+          "400": {"description": "Invalid request, URL, or private target"},
+          "413": {"description": "Input or fetched page exceeds the size limit"},
+          "415": {"description": "Unsupported content type"},
+          "502": {"description": "Page fetch failed"}
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Detection": {
+        "type": "object",
+        "required": ["categories", "severity", "evidence", "offset"],
+        "properties": {
+          "categories": {"type": "array", "items": {"type": "string"}},
+          "severity": {"type": "string", "enum": ["high", "medium"]},
+          "evidence": {"type": "string"},
+          "offset": {"type": "object", "properties": {"start": {"type": "integer"}, "end": {"type": "integer"}}}
+        }
+      },
+      "ScanResult": {
+        "type": "object",
+        "required": ["schema_version", "verdict", "risk", "risk_score", "detections", "detection_count", "detections_truncated", "sanitized_text", "source", "limitations"],
+        "properties": {
+          "schema_version": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["pattern_detected", "suspicious", "no_known_pattern"]},
+          "risk": {"type": "string", "enum": ["high", "medium", "low"]},
+          "risk_score": {"type": "integer", "minimum": 0, "maximum": 100},
+          "score_note": {"type": "string"},
+          "detections": {"type": "array", "maxItems": 50, "items": {"$ref": "#/components/schemas/Detection"}},
+          "detection_count": {"type": "integer", "minimum": 0, "description": "Total merged findings before the detailed detection list is capped."},
+          "detections_truncated": {"type": "boolean", "description": "True when more than 50 findings exist; sanitized_text still redacts every finding."},
+          "sanitized_text": {"type": "string"},
+          "source": {"type": "object", "properties": {"type": {"type": "string", "enum": ["text", "url"]}, "url": {"type": "string"}}},
+          "limitations": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

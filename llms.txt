@@ -1,0 +1,20 @@
+# VetoScan
+
+> Explainable heuristic screening of text and public HTTPS pages for known prompt-injection patterns.
+
+## API
+
+- `POST /v1/scan` with JSON `{ "text": "..." }` or `{ "url": "https://..." }` (exactly one field).
+- Results expose `detection_count` and `detections_truncated`; up to 50 detailed findings are returned, while `sanitized_text` redacts all findings.
+- `GET /openapi.json` is the OpenAPI 3.1 contract.
+- `GET /service.json` is the service discovery card.
+- `GET /agent-tool.json` is an OpenAI function-tool definition. The agent runtime's function handler maps `input_type=text` to `{ "text": content }` and `input_type=url` to `{ "url": content }`, POSTs to `/v1/scan`, and returns the full JSON response.
+- `GET /health` reports local service and payment status.
+
+## Important limits
+
+- This checkout runs only on `127.0.0.1`; it is not reachable by hosted agents until separately deployed to an approved public HTTPS host.
+- Payment is disabled and price is unset. Do not describe this as a paid or live service.
+- The detector is heuristic. `no_known_pattern` does not mean safe; redaction is not a security boundary.
+- URL fetches require public HTTPS on port 443, block private/local/reserved addresses, limit redirects to three and responses to 1 MB, and extract HTML/plain text without executing JavaScript.
+- Submitted text and URLs are not logged or stored by this prototype.

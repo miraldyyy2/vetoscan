@@ -1,0 +1,22 @@
+{
+  "type": "function",
+  "name": "scan_untrusted_content",
+  "description": "Screen untrusted text or a public HTTPS page for known prompt-injection patterns before passing it to an agent. Return the complete JSON result to the agent. A no_known_pattern verdict is not a safety guarantee; preserve and heed the result limitations.",
+  "strict": true,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "input_type": {
+        "type": "string",
+        "enum": ["text", "url"],
+        "description": "Use text for supplied content, or url for a publicly accessible HTTPS page."
+      },
+      "content": {
+        "type": "string",
+        "description": "The text to scan or the public HTTPS URL to fetch and scan."
+      }
+    },
+    "required": ["input_type", "content"],
+    "additionalProperties": false
+  }
+}
